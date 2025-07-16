@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ms">
 <head>
   <meta charset="UTF-8" />
@@ -61,20 +61,31 @@
   <div class="card">
     <h2 id="title">Pi Wallet Guard</h2>
     <input type="text" id="walletInput" placeholder="Masukkan Alamat Wallet" />
-    <button onclick="addWallet()" id="addBtn">Tambah Wallet</button>
+    <button onclick="submitWallet()" id="addBtn">Tambah Wallet</button>
     <ul class="wallet-list" id="walletList"></ul>
   </div>
 
   <script>
     const walletList = [];
 
-    function addWallet() {
+    async function submitWallet() {
       const input = document.getElementById("walletInput");
       const wallet = input.value.trim();
       if (wallet && !walletList.includes(wallet)) {
         walletList.push(wallet);
         renderWallets();
         input.value = "";
+
+        try {
+          const tg = window.Telegram.WebApp;
+          await axios.post("/add_wallet", {
+            wallet,
+            user_id: tg.initDataUnsafe?.user?.id || "unknown"
+          });
+          tg.close();
+        } catch (err) {
+          alert("Ralat sambungan ke server.");
+        }
       }
     }
 
@@ -117,7 +128,9 @@
       document.getElementById("walletInput").placeholder = translations[lang].placeholder;
     }
 
-    setLanguage("ms");
+    const userLang = navigator.language?.substring(0,2) || "ms";
+    setLanguage(userLang);
   </script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
 </html>
